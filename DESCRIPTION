@@ -1,0 +1,29 @@
+Package: btvis
+Title: Bipartite and Tripartite Graphs for Visualization of Relational Data
+Version: 0.0.0.9000
+Authors@R: 
+    person("Zjardyn", "Liera-Hood", , "zlieraho@uwaterloo.ca", role = c("aut", "cre"))
+Description: Provides useful wrapper functions to create, colour, and
+    modify bipartite and tripartite graphs using the 'igraph' package.
+    This package focuses on data visualization and was created with
+    biological data in mind. Useful for visualizing hierarchical
+    relationships between variables, such as organism, gene, and function.
+    Once a graph is created and modified to your liking, it can be
+    visualized using the 'ggraph' package.
+License: MIT + file LICENSE
+Imports:
+    dplyr (>= 1.1.2),
+    ggraph (>= 2.1.0),
+    glue (>= 1.6.2),
+    igraph (>= 1.5.0),
+    magrittr,
+    rlang (>= 1.1.1),
+    stringr (>= 1.5.0),
+    tibble (>= 3.2.1),
+    tidyselect (>= 1.2.0)
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.3
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
