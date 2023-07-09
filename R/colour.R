@@ -10,17 +10,17 @@
 #' graph_bi <- my_bipartite_graph(el, c("c1", "c2"))
 #' E(graph_bi)$colour <- colour_edges_bi(graph_bi, 1)
 #' @export
-colour_edge <- function(graph_bi, edge_nodes = 1){
+colour_bi <- function(graph_bi, edge_nodes = 1){
   nodes <- unique(igraph::get.edgelist(graph_bi)[,edge_nodes])
   edge_colours <- vector(mode = "character", length = igraph::ecount(graph_bi))
   for(node in nodes){
-    edge_colours[igraph::E(graph_bi)[.from(node)]] <- node
-  } 
+    edge_colours[igraph::E(graph_bi)[.inc(node)]] <- node
+  }
   edge_colours
 }
-#' Generate a colour vector for a node selection of a bipartite graph object. 
-#' 
-#' @param graph_bi A bipartite graph object.  
+#' Generate a colour vector for a node selection of a bipartite graph object.
+#'
+#' @param graph_bi A bipartite graph object.
 #' @param nodes_s A character vector of selection(s).
 #' @param binary If colours should be based on TRUE/FALSE.
 #' @returns A vector. Use it to set the colour attribute of the graph object.
@@ -42,13 +42,13 @@ colour_edge_selection <- function(graph_bi, nodes_s, binary = TRUE){
   if(binary == TRUE){
      edge_colours <- rep(FALSE, igraph::ecount(graph_bi))
     for(node in matched_nodes){
-      edge_colours[igraph::E(graph_bi)[.from(node)]] <- TRUE
+      edge_colours[igraph::E(graph_bi)[.inc(node)]] <- TRUE
     }
-    edge_colours 
+    edge_colours
   } else {
     edge_colours <- rep("Other", igraph::ecount(graph_bi))
     for(node in matched_nodes){
-      edge_colours[igraph::E(graph_bi)[.from(node)]] <- node
+      edge_colours[igraph::E(graph_bi)[.inc(node)]] <- node
     }
     edge_colours
   }
@@ -59,14 +59,14 @@ colour_edge_selection <- function(graph_bi, nodes_s, binary = TRUE){
 #' @returns A vector, use it to colour plots.
 #' @export
 # TODO:! `pattern` must be a string, not an integer.
-# TODO: sometimes whole colourscheme fails on rhs 
+# TODO: sometimes whole colourscheme fails on rhs
 colour_tri <- function(graph_tri, rev = FALSE){
   colours <- rep(NA, ecount(graph_tri))
   if(rev == TRUE){
     for (node in unique(unlist(graph_tri$mtx))) {
       node_edges <- E(graph_tri)[.inc(node)]
       colours[node_edges] <- node
-    } 
+    }
     colours
   } else {
     for (node in rev(unique(unlist(graph_tri$mtx)))) {
@@ -76,7 +76,7 @@ colour_tri <- function(graph_tri, rev = FALSE){
     colours
   }
 }
-#' @export 
+#' @export
 colour_tri_path <- function(graph_tri, edge_column){
   el <- get.edgelist(graph_tri)
   c1 <- unique(edge_column)
@@ -84,7 +84,7 @@ colour_tri_path <- function(graph_tri, edge_column){
   elp <- paste(el[, 1], el[, 2])
   for (i in c1) {
     for (j in seq(nrow(el)/2)) {
-      if (str_detect(elp[j], i)) { 
+      if (str_detect(elp[j], i)) {
         colours[j] <- i
         colours[j + nrow(el)/2] <- i
       }
@@ -105,11 +105,11 @@ get_dup_edges <- function(el, mtx, dup) {
       separate(Element, into = c("c1", "c2", "c3"), sep = " ") %>%
       unite(c23, c2, c3, sep = " ") %>%
       aggregate(c1~., FUN=paste, collapse="")
-    unique_chars <- map_chr(elements$c1, ~ strsplit(.x, "") %>% unlist() %>% unique() %>% paste(collapse = "")) 
+    unique_chars <- map_chr(elements$c1, ~ strsplit(.x, "") %>% unlist() %>% unique() %>% paste(collapse = ""))
     elements$c1 <- unique_chars
     elements <- paste(elements$c1, elements$c23)
     elements
-  } 
+  }
 }
 
 #' @export
@@ -146,3 +146,14 @@ colour_tri_path2 <- function(graph_tri, el, mtx, dup){
    }
   colours
 }
+
+#' @export
+colour_tri_path3 <- function(graph_tri, mtx, edge_selection = 1){
+  mtx <- graph_tri$mtx
+  colours <- vector(length = ecount(graph_tri))
+  for(i in seq(nrow(mtx))){
+     colours[igraph::E(graph_tri)[(.inc(mtx[i,1]) & .inc(mtx[i,2])) | (.inc(mtx[i,2]) & .inc(mtx[i,3]))]] <- mtx[i,edge_selection]
+  }
+  colours
+}
+

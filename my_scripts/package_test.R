@@ -3,12 +3,105 @@ library(igraph)
 library(tidyverse)
 library(ggraph)
 
+get_dup_edges <- function(graph_tri){
+  el <- graph_tri$el
+  mtx <- graph_tri$mtx
+  dup <- graph_tri$dup
+  # get duplicates edges and paste into | syntax
+  selection <- unique(paste(el[dup,][,1], el[dup,][,2])) %>%
+      paste(collapse = "|")
+  # paste mtx into string vector on the rows
+  mtxp <- paste(mtx[,1], mtx[,2], mtx[,3])
+  # obtain duplicate edge paths from mtxp
+  elements <- tibble(Element = mtxp[str_detect(mtxp, selection)]) %>%
+    separate(Element, into = c("c1", "c2", "c3"), sep = " ")
+  elements1 <- elements %>%
+    unite(c23, c2, c3, sep = " ")
+  elements2 <- elements1 %>%
+    group_by(c23) %>%
+    summarise(c1 = paste(c1, collapse = ""))
+  unique_chars <- map_chr(elements2$c1, ~ strsplit(.x, "") %>% unlist() %>% unique() %>% paste(collapse = ""))
+  elements2$c1 <- unique_chars
+  elements3 <- paste(elements2$c1, elements2$c23)
+  elements3
+}
+
 # small example
-df <- tibble(c1 = c("A", "A", "B", "B", "B", "C", "C", "D"), c2 = c(1, 2, 1, 2, 3, 3, 4, 4))
-graph_bi <- btvis::bipartite_graph(df, c("c1", "c2"))
-E(graph_bi)$colour <- colour_edge_selection(graph_bi, c("A", "4"), binary = TRUE)
-# V(graph_bi)$name <- offset_node_label(graph_bi, 1, offset = "\n")
-ggbipart(graph_bi, edge_colour = E(graph_bi)$colour, horizontal = FALSE)
+df <- tibble(c1 = sample(LETTERS[1:4], 10, replace = TRUE),
+             c2 = sample(1:4, 10, replace = TRUE),
+             c3 = sample(LETTERS[23:26], 10, replace = TRUE))
+# graph_bi <- btvis::bipartite_graph(df, c("c1", "c2"))
+# edge_colours <- colour_bi(graph_bi, 2)
+# edge_colours <- colour_edge_selection(graph_bi, c("A", "B", "1"))
+# graph_bi %>%
+#   ggraph::ggraph(layout = "bipartite") +
+#   ggraph::geom_node_point() +
+#   ggraph::geom_edge_link(aes(colour = edge_colours)) +
+#   ggraph::geom_node_text(ggplot2::aes(label = name), hjust = "outward", vjust = "outward") +  coord_flip() + scale_y_reverse() + scale_x_reverse()
+e_s = 1
+graph_tri <- btvis::tripartite_graph(df, c("c1", "c2", "c3"))
+colours <- colour_tri_path3(graph_tri, edge_selection = e_s)
+colours[graph_tri$dup] <- FALSE
+# graph_tri %>%
+#   ggraph::ggraph(layout = graph_tri$l$layout[,2:1]) +
+#   ggraph::geom_node_point() +
+#   ggraph::geom_edge_link(aes(colour = colours)) +
+#   ggraph::geom_node_text(ggplot2::aes(label = name), hjust = "outward", vjust = "outward") +
+#   scale_x_reverse()
+el <- graph_tri$el
+mtx <- graph_tri$mtx
+dup <- graph_tri$dup
+# replace duplicated edges with the its outer nodes
+select <- unique(mtx[,1]) %>%
+  paste(collapse = "|")
+if(sum(dup != 0)){
+  for(i in seq(length(E(graph_tri)[dup]))){
+    if(str_detect(graph_tri$el[dup,][i,1], select) == TRUE){
+      colours[E(graph_tri)[dup][i]] <- graph_tri$el[dup,][i,1]
+    } else{
+      colours[E(graph_tri)[dup][i]] <- paste(graph_tri$el[dup,][i,1], graph_tri$el[dup,][i,2])
+    }
+  }
+}
+# from get_dup_edges, match and replace the colour with the full path
+if(sum(dup != 0)){
+  vector1<- get_dup_edges(graph_tri)
+  vector2 <- colours
+  matches <- tibble(Full = vector1) %>%
+    mutate(Short = str_extract(Full, "\\s(.*)")) %>%
+    mutate(Short = str_trim(Short, side = "left"))
+  for(i in seq(nrow(matches))){
+    idx <- which(vector2 == matches$Short[i])
+    vector2[idx] <- matches$Full[i]
+  }
+  colours <- vector2
+}
+colours
+
+graph_tri %>%
+  ggraph::ggraph(layout = graph_tri$l$layout[,2:1]) +
+  ggraph::geom_node_point() +
+  ggraph::geom_edge_link(aes(colour = colours)) +
+  ggraph::geom_node_text(ggplot2::aes(label = name), hjust = "outward", vjust = "outward") +
+  scale_x_reverse()
+
+get_dup_edges(graph_tri)
+weights <- edge_weights_n(graph_tri)
+graph_tri_s <- igraph::simplify(graph_tri)
+colour_tri_path3(graph_tri)
+
+get_dup_edges(graph_tri_s)
+get.edgelist(graph_tri_s)
+graph_tri_s %>%
+  ggraph::ggraph(layout = graph_tri$l$layout[,2:1]) +
+  ggraph::geom_node_point() +
+  ggraph::geom_edge_link(aes(colour = colours)) +
+  ggraph::geom_node_text(ggplot2::aes(label = name), hjust = "outward", vjust = "outward") +
+  scale_x_reverse()
+
+
+
+
 
 
 rm(list=ls())
@@ -16,43 +109,56 @@ devtools::document()
 devtools::install()
 
 
-offset_node_label_newline <- function(graph_bi, n = 2, offset = " "){
-  nodes <- igraph::V(graph_bi)$name
-  el <- igraph::get.edgelist(graph_bi)
-  lhs <- el[,1] %>%
-    as.vector() %>%
-    unique() %>%
-    paste(collapse = "|")
-  rhs <- el[,2] %>%
-    as.vector() %>%
-    unique() %>%
-    paste(collapse = "|")
-tibble::tibble(nodes) %>%
-  dplyr::mutate(formatted = dplyr::case_when(
-    stringr::str_detect(nodes, lhs) ~ paste(nodes, strrep(offset, n)),
-    stringr::str_detect(nodes, rhs) ~ paste(strrep(offset, n), nodes),
-    TRUE ~ nodes)) %>%
-  dplyr::mutate(formatted= dplyr::case_when(
-    stringr::str_detect(nodes, lhs) ~ stringr::str_replace(formatted, "\n", paste("\n", strrep(offset, n))),
-    stringr::str_detect(nodes, rhs) ~ stringr::str_replace(formatted, "\n", paste(strrep(offset, n), "\n")),
-    TRUE ~ nodes)) %>%
-  dplyr::pull(formatted)
-}
-
 
 
 
 ## big example
-el <- readr::read_rds("/home/zjardyn/OneDrive/pFAMWork/edge_list.rds")
-el_PE <- el %>%
-  dplyr::filter(Plastic == "PE" | Plastic == "LDPE" | Plastic == "PS")
-graph_pe <- btvis::bipartite_graph(el_PE, edge_list = c("Organism", "Enzyme"))
-graph_pe_s <- igraph::simplify(graph_pe)
-E(graph_pe_s)$weight <- edge_weights_n(graph_pe)
-E(graph_pe_s)$colour <- colour_edge_selection(graph_pe_s, "[aA]lkane") 
-V(graph_pe_s)$name <-  split_node_label_newline_n(graph_pe_s)
-V(graph_pe_s)$name <- offset_node_label_newline(graph_pe_s)
+df <- readr::read_rds("/home/zjardyn/btvis/my_scripts/edge_list.rds")
+df %>%
+  group_by(Plastic) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n)) %>%
+  print(n = 40)
+
+df_s <- df %>%
+  dplyr::filter(Plastic == "PE")
+graph_bi <- btvis::bipartite_graph(df, c("Organism", "Enzyme"))
+edge_colours <- colour_bi(graph_bi, 2)
+graph_bi %>%
+  ggraph::ggraph(layout = "bipartite") +
+  ggraph::geom_node_point() +
+  ggraph::geom_edge_link(aes(colour = edge_colours),
+                         show.legend = FALSE) +
+  ggraph::geom_node_text(ggplot2::aes(label = name), hjust = "outward", vjust = "outward") +
+  coord_flip() +
+  scale_y_reverse(limits = c(1.4, -0.4)) +
+  scale_x_reverse() +
+  theme_bw()
 
 
-# ggbipart(graph_pe_s, edge_colour = NULL, edge_weight = E(graph_pe_s)$weight, horizontal = TRUE)
-ggbipart(graph_pe_s, edge_colour = E(graph_pe_s)$colour, horizontal = TRUE)
+
+
+el <- graph_tri$el
+mtx <- graph_tri$mtx
+dup <- graph_tri$dup
+# get duplicates edges and paste into | syntax
+selection <- unique(paste(el[dup,][,1], el[dup,][,2])) %>%
+    paste(collapse = "|")
+# paste mtx into string vector on the rows
+mtxp <- paste(mtx[,1], mtx[,2], mtx[,3])
+# obtain duplicate edge paths from mtxp
+elements <- tibble(Element = mtxp[str_detect(mtxp, selection)]) %>%
+  separate(Element, into = c("c1", "c2", "c3"), sep = " ")
+elements1 <- elements %>%
+  unite(c23, c2, c3, sep = " ")
+elements2 <- elements1 %>%
+  group_by(c23) %>%
+  summarise(c1 = paste(c1, collapse = "|"))
+elements3 <- elements2 %>%
+  filter(str_detect(c1, "\\|"))
+unique_chars <- map_chr(elements3$c1, ~ strsplit(.x, "|") %>% unlist() %>% unique() %>% paste(collapse = ""))
+elements3$c1 <- unique_chars
+elements4 <- paste(elements3$c1, elements3$c23)
+elements4 %>%
+  str_replace("\\|", "")
+

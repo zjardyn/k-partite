@@ -5,10 +5,10 @@ library(ggraph)
 library(viridis)
 
 df <- tibble(c1 = sample(LETTERS[1:4], 7, replace = TRUE),
-             c2 = sample(1:4, 7, replace = TRUE), 
+             c2 = sample(1:4, 7, replace = TRUE),
              c3 = sample(LETTERS[23:26], 7, replace = TRUE))
 # graph_tri <- tripartite_graph(df, c("c1", "c2", "c3"))
-df <- readr::read_rds("/home/zjardyn/OneDrive/pFAMWork/edge_list.rds")
+df <- readr::read_rds("/home/zjardyn/btvis/my_scripts/edge_list.rds")
 df_pe <- df  %>%
   dplyr::filter(Plastic == "PLA")
 graph_tri <- tripartite_graph(df_pe, c("Organism", "Enzyme", "Domain"))
@@ -20,7 +20,7 @@ graph_tri <- tripartite_graph(df_pe, c("Organism", "Enzyme", "Domain"))
 # weights <- edge_weights_n(graph_tri)
 # graph_tri_s <- igraph::simplify(graph_tri)
 # colours <- colour_tri(graph_tri)
- 
+
 graph_tri_s <- igraph::simplify(graph_tri)
 # colours <- colour_tri_path(graph_tri_s, edge_column = df_pe$Plastic)
 mtx <- graph_tri_s$mtx
@@ -34,15 +34,15 @@ for(i in seq(nrow(mtx))){
 weights <- edge_weights_n(graph_tri)
 # colours <- colour_tri_path(graph_tri, edge_column = df$c1)
 graph_tri_s %>%
-  ggraph(layout = graph_tri$l$layout[,2:1]) + 
-    geom_node_point() +  
+  ggraph(layout = graph_tri$l$layout[,2:1]) +
+    geom_node_point() +
     geom_edge_link(aes(colour = colours, edge_width = weights ),
                    show.legend = F,
                    alpha = 0.7) +
       geom_node_text(aes(label = name),
                      hjust = "outward",
-                     vjust = "outward")+ 
-  scale_edge_color_viridis(discrete = TRUE, option = "D") + 
+                     vjust = "outward")+
+  scale_edge_color_viridis(discrete = TRUE, option = "D") +
   # scale_x_reverse() +
   # theme_graph(background = "white") +
   scale_x_reverse(limits = c(3.3,0))
@@ -82,11 +82,11 @@ selection <- unique(paste(el[dup,][,1], el[dup,][,2])) %>%
       unite(c23, c2, c3, sep = " ") %>%
       aggregate(c1~., FUN=paste, collapse="") %>%
       tibble()
-    unique_chars <- map_chr(elements$c1, ~ strsplit(.x, "") %>% unlist() %>% unique() %>% paste(collapse = "")) 
+    unique_chars <- map_chr(elements$c1, ~ strsplit(.x, "") %>% unlist() %>% unique() %>% paste(collapse = ""))
     elements$c1 <- unique_chars
     elements <- paste(elements$c1, elements$c23)
     elements
-  
+
 get_dup_edges <- function(el, mtx, dup) {
   if(sum(dup)==0){
     print("No duplicates.")
@@ -98,11 +98,11 @@ get_dup_edges <- function(el, mtx, dup) {
       separate(Element, into = c("c1", "c2", "c3"), sep = " ") %>%
       unite(c23, c2, c3, sep = " ") %>%
       aggregate(c1~., FUN=paste, collapse="")
-    unique_chars <- map_chr(elements$c1, ~ strsplit(.x, "") %>% unlist() %>% unique() %>% paste(collapse = "")) 
+    unique_chars <- map_chr(elements$c1, ~ strsplit(.x, "") %>% unlist() %>% unique() %>% paste(collapse = ""))
     elements$c1 <- unique_chars
     elements <- paste(elements$c1, elements$c23)
     elements
-  } 
+  }
 }
 
 
@@ -116,11 +116,11 @@ if(sum(dup)==0){
     separate(Element, into = c("c1", "c2", "c3"), sep = " ") %>%
     unite(c23, c2, c3, sep = " ") %>%
     aggregate(c1~., FUN=paste, collapse="")
-  unique_chars <- map_chr(elements$c1, ~ strsplit(.x, "") %>% unlist() %>% unique() %>% paste(collapse = "")) 
+  unique_chars <- map_chr(elements$c1, ~ strsplit(.x, "") %>% unlist() %>% unique() %>% paste(collapse = ""))
   elements$c1 <- unique_chars
   elements <- paste(elements$c1, elements$c23)
   elements
-} 
+}
 
 
 
@@ -131,13 +131,13 @@ E(graph_tri)[.inc("A|B")]
 
 
 for(i in seq(length(E(graph_tri)[dup]))){
- colours[E(graph_tri)[dup][i]] <- paste(graph_tri$el[dup,][i,1], graph_tri$el[dup,][i,2]) 
+ colours[E(graph_tri)[dup][i]] <- paste(graph_tri$el[dup,][i,1], graph_tri$el[dup,][i,2])
 }
 # E(igraph::simplify(graph_tri))
 # t(graph_tri$el)
 unique(mtx[,1])
 
-edge_list = c("c1", "c2", "c3") 
+edge_list = c("c1", "c2", "c3")
 mtx <- df %>%
    dplyr::select(tidyselect::all_of(edge_list))%>%
    as.matrix()
@@ -145,16 +145,16 @@ mtx <- df %>%
  graph_tri <- graph_from_edgelist(el, directed = FALSE)
  layers <- ceiling(match(V(graph_tri)$name, mtx)/nrow(mtx))
  l <- layout_with_sugiyama(graph_tri, layers)
- graph_tri$mtx <- mtx 
+ graph_tri$mtx <- mtx
  graph_tri$el <- el
- graph_tri$l <- l 
+ graph_tri$l <- l
  graph_tri
 
- 
- # different 
-get.edgelist(graph_tri) 
+
+ # different
+get.edgelist(graph_tri)
 get.edgelist(igraph::simplify(graph_tri))
-# same 
+# same
 V(graph_tri)$name
 V(igraph::simplify(graph_tri))$name
 
@@ -211,15 +211,15 @@ colours
 elp[overlapping]
 
 graph_tri %>%
-  ggraph(layout = graph_tri$l$layout[,2:1]) + 
-    geom_node_point() +  
+  ggraph(layout = graph_tri$l$layout[,2:1]) +
+    geom_node_point() +
     geom_edge_link(aes(colour = colours),
                    alpha = 0.5,
                    edge_width = 2) +
       geom_node_text(aes(label = name),
                      hjust = "outward",
                      vjust = "outward") +
-    theme_graph(background = "white")  + 
+    theme_graph(background = "white")  +
   scale_x_reverse()
 # weights <- NULL
 # weights <- edge_weights_n(graph_tri)
@@ -228,7 +228,7 @@ graph_tri %>%
 
 
 # mtx <- graph_tri$mtx
-# p1 <- paste(mtx[,1], mtx[,2]) 
+# p1 <- paste(mtx[,1], mtx[,2])
 # p2 <- paste(mtx[,2], mtx[,3])
 # idx <- ifelse(duplicated(p1) | duplicated(p2), TRUE, FALSE)
 # mtx[!idx,]
@@ -240,12 +240,12 @@ graph_tri %>%
 # colours <- vector(length = ecount(graph_tri))
 # idx <- E(graph_tri)[(.inc("B") & .inc("1")) | (.inc("1") & .inc("Z")) ]
 # colours[idx] <- "yes"
-# 
-# 
+#
+#
 # E(graph_tri)[.from("A")]
 # E(graph_tri)[.inc("A")]
-# 
-# 
+#
+#
 # edge_column <- df$c1
 # el <- get.edgelist(graph_tri_s)
 # c1 <- unique(edge_column)
@@ -253,14 +253,14 @@ graph_tri %>%
 # elp <- paste(el[, 1], el[, 2])
 # for (i in c1) {
 #   for (j in seq(nrow(el)/2)) {
-#     if (str_detect(elp[j], i)) { 
+#     if (str_detect(elp[j], i)) {
 #       colours[j] <- i
 #       colours[j + nrow(el)/2] <- i
 #     }
 #   }
 # }
 # colours
-# 
+#
 # colours <- colour_tri_path(graph_tri, df$c1)
 # igraph::simplify(graph_tri) %>%
 ## mtx <- graph_tri$mtx
@@ -272,7 +272,7 @@ graph_tri %>%
 
 # colours <- vector(length = ecount(graph_tri))
 # for(i in seq(nrow(mtx))){
-#   colours[igraph::E(graph_tri)[(.inc(mtx[i,1]) & .inc(mtx[i,2])) | (.inc(mtx[i,2]) & .inc(mtx[i,3]))]] <- mtx[i,1]   
+#   colours[igraph::E(graph_tri)[(.inc(mtx[i,1]) & .inc(mtx[i,2])) | (.inc(mtx[i,2]) & .inc(mtx[i,3]))]] <- mtx[i,1]
 # }
 
 # select <- unique(mtx[,1]) %>%
@@ -296,7 +296,7 @@ graph_tri %>%
 #     idx <- which(vector2 == matches$Short[i])
 #     vector2[idx] <- matches$Full[i]
 #   }
-#   colours <- vector2 
+#   colours <- vector2
 # }
 
 

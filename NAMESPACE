@@ -2,11 +2,12 @@
 
 export("%>%")
 export(bipartite_graph)
-export(colour_edge)
+export(colour_bi)
 export(colour_edge_selection)
 export(colour_tri)
 export(colour_tri_path)
 export(colour_tri_path2)
+export(colour_tri_path3)
 export(edge_weights_n)
 export(get_dup_edges)
 export(ggbipart)

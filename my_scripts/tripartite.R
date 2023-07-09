@@ -1,3 +1,8 @@
+library(btvis)
+library(igraph)
+library(tidyverse)
+library(ggraph)
+
 df <- tibble(c1 = c("A", "A", "B", "B", "B", "C", "C", "D"),
              c2 = c(1, 2, 1, 2, 3, 3, 4, 4),
              c3 = c("X","Y", "Z", "Y", "Z", "Z", "X", "Y"))
@@ -61,7 +66,7 @@ colours <- rep(NA, ecount(graph_tri))
 for (node in unique(unlist(mx))) {
   # Get the edges connected to the current node
   node_edges <- E(graph_tri)[from(node) | to(node)]
-  
+
   # Assign a color to the edges connected to the current node
   colours[node_edges] <- node
 }
@@ -71,7 +76,7 @@ colours <- rep(NA, ecount(graph_tri))
 for (node in rev(unique(unlist(mx)))) {
   # Get the edges connected to the current node
   node_edges <- E(graph_tri)[from(node) | to(node)]
-  
+
   # Assign a color to the edges connected to the current node
   colours[node_edges] <- node
 }
@@ -130,13 +135,13 @@ vector <- paste(vector$Element, vector$New)
 
 
 graph_tri %>%
-  ggraph(layout = l$layout[,2:1]) + 
-    geom_node_point() +  
+  ggraph(layout = l$layout[,2:1]) +
+    geom_node_point() +
     geom_edge_link(aes(colour = colours)) +
       geom_node_text(aes(label = name),
                      hjust = "outward",
                      vjust = "outward") +
-    theme_graph(background = "white")  + 
+    theme_graph(background = "white")  +
   scale_x_reverse()
 
 
@@ -144,7 +149,7 @@ graph_tri %>%
 # E(graph_tri)[.to("1")]
 # E(graph_tri)[.inc("1")]
 
-# 
+#
 # E(graph_tri)
 # colours <- vector(length = ecount(graph_tri))
 # colours[1] <- TRUE
