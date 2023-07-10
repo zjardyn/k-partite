@@ -51,4 +51,3 @@ graph_tri %>%
   theme_graph(background = "white") +
   scale_x_reverse()
 
-

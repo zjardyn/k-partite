@@ -3,29 +3,6 @@ library(igraph)
 library(tidyverse)
 library(ggraph)
 
-get_dup_edges <- function(graph_tri){
-  el <- graph_tri$el
-  mtx <- graph_tri$mtx
-  dup <- graph_tri$dup
-  # get duplicates edges and paste into | syntax
-  selection <- unique(paste(el[dup,][,1], el[dup,][,2])) %>%
-      paste(collapse = "|")
-  # paste mtx into string vector on the rows
-  mtxp <- paste(mtx[,1], mtx[,2], mtx[,3])
-  # obtain duplicate edge paths from mtxp
-  elements <- tibble(Element = mtxp[str_detect(mtxp, selection)]) %>%
-    separate(Element, into = c("c1", "c2", "c3"), sep = " ")
-  elements1 <- elements %>%
-    unite(c23, c2, c3, sep = " ")
-  elements2 <- elements1 %>%
-    group_by(c23) %>%
-    summarise(c1 = paste(c1, collapse = ""))
-  unique_chars <- map_chr(elements2$c1, ~ strsplit(.x, "") %>% unlist() %>% unique() %>% paste(collapse = ""))
-  elements2$c1 <- unique_chars
-  elements3 <- paste(elements2$c1, elements2$c23)
-  elements3
-}
-
 # small example
 df <- tibble(c1 = sample(LETTERS[1:4], 10, replace = TRUE),
              c2 = sample(1:4, 10, replace = TRUE),
@@ -38,76 +15,11 @@ df <- tibble(c1 = sample(LETTERS[1:4], 10, replace = TRUE),
 #   ggraph::geom_node_point() +
 #   ggraph::geom_edge_link(aes(colour = edge_colours)) +
 #   ggraph::geom_node_text(ggplot2::aes(label = name), hjust = "outward", vjust = "outward") +  coord_flip() + scale_y_reverse() + scale_x_reverse()
-e_s = 1
-graph_tri <- btvis::tripartite_graph(df, c("c1", "c2", "c3"))
-colours <- colour_tri_path3(graph_tri, edge_selection = e_s)
-colours[graph_tri$dup] <- FALSE
-# graph_tri %>%
-#   ggraph::ggraph(layout = graph_tri$l$layout[,2:1]) +
-#   ggraph::geom_node_point() +
-#   ggraph::geom_edge_link(aes(colour = colours)) +
-#   ggraph::geom_node_text(ggplot2::aes(label = name), hjust = "outward", vjust = "outward") +
-#   scale_x_reverse()
-el <- graph_tri$el
-mtx <- graph_tri$mtx
-dup <- graph_tri$dup
-# replace duplicated edges with the its outer nodes
-select <- unique(mtx[,1]) %>%
-  paste(collapse = "|")
-if(sum(dup != 0)){
-  for(i in seq(length(E(graph_tri)[dup]))){
-    if(str_detect(graph_tri$el[dup,][i,1], select) == TRUE){
-      colours[E(graph_tri)[dup][i]] <- graph_tri$el[dup,][i,1]
-    } else{
-      colours[E(graph_tri)[dup][i]] <- paste(graph_tri$el[dup,][i,1], graph_tri$el[dup,][i,2])
-    }
-  }
-}
-# from get_dup_edges, match and replace the colour with the full path
-if(sum(dup != 0)){
-  vector1<- get_dup_edges(graph_tri)
-  vector2 <- colours
-  matches <- tibble(Full = vector1) %>%
-    mutate(Short = str_extract(Full, "\\s(.*)")) %>%
-    mutate(Short = str_trim(Short, side = "left"))
-  for(i in seq(nrow(matches))){
-    idx <- which(vector2 == matches$Short[i])
-    vector2[idx] <- matches$Full[i]
-  }
-  colours <- vector2
-}
-colours
-
-graph_tri %>%
-  ggraph::ggraph(layout = graph_tri$l$layout[,2:1]) +
-  ggraph::geom_node_point() +
-  ggraph::geom_edge_link(aes(colour = colours)) +
-  ggraph::geom_node_text(ggplot2::aes(label = name), hjust = "outward", vjust = "outward") +
-  scale_x_reverse()
-
-get_dup_edges(graph_tri)
-weights <- edge_weights_n(graph_tri)
-graph_tri_s <- igraph::simplify(graph_tri)
-colour_tri_path3(graph_tri)
-
-get_dup_edges(graph_tri_s)
-get.edgelist(graph_tri_s)
-graph_tri_s %>%
-  ggraph::ggraph(layout = graph_tri$l$layout[,2:1]) +
-  ggraph::geom_node_point() +
-  ggraph::geom_edge_link(aes(colour = colours)) +
-  ggraph::geom_node_text(ggplot2::aes(label = name), hjust = "outward", vjust = "outward") +
-  scale_x_reverse()
-
-
-
-
 
 
 rm(list=ls())
 devtools::document()
 devtools::install()
-
 
 
 
@@ -134,31 +46,3 @@ graph_bi %>%
   scale_y_reverse(limits = c(1.4, -0.4)) +
   scale_x_reverse() +
   theme_bw()
-
-
-
-
-el <- graph_tri$el
-mtx <- graph_tri$mtx
-dup <- graph_tri$dup
-# get duplicates edges and paste into | syntax
-selection <- unique(paste(el[dup,][,1], el[dup,][,2])) %>%
-    paste(collapse = "|")
-# paste mtx into string vector on the rows
-mtxp <- paste(mtx[,1], mtx[,2], mtx[,3])
-# obtain duplicate edge paths from mtxp
-elements <- tibble(Element = mtxp[str_detect(mtxp, selection)]) %>%
-  separate(Element, into = c("c1", "c2", "c3"), sep = " ")
-elements1 <- elements %>%
-  unite(c23, c2, c3, sep = " ")
-elements2 <- elements1 %>%
-  group_by(c23) %>%
-  summarise(c1 = paste(c1, collapse = "|"))
-elements3 <- elements2 %>%
-  filter(str_detect(c1, "\\|"))
-unique_chars <- map_chr(elements3$c1, ~ strsplit(.x, "|") %>% unlist() %>% unique() %>% paste(collapse = ""))
-elements3$c1 <- unique_chars
-elements4 <- paste(elements3$c1, elements3$c23)
-elements4 %>%
-  str_replace("\\|", "")
-
