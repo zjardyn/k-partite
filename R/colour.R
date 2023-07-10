@@ -94,30 +94,11 @@ colour_tri_path <- function(graph_tri, edge_column){
 }
 
 #' @export
-get_dup_edges <- function(el, mtx, dup) {
-  if(sum(dup)==0){
-    print("No duplicates.")
-  } else{
-    selection <- unique(paste(el[dup,][,1], el[dup,][,2])) %>%
-      paste(collapse = "|")
-    mtxp <- paste(mtx[,1], mtx[,2], mtx[,3])
-    elements <- tibble(Element = mtxp[str_detect(mtxp, selection)]) %>%
-      separate(Element, into = c("c1", "c2", "c3"), sep = " ") %>%
-      unite(c23, c2, c3, sep = " ") %>%
-      aggregate(c1~., FUN=paste, collapse="")
-    unique_chars <- map_chr(elements$c1, ~ strsplit(.x, "") %>% unlist() %>% unique() %>% paste(collapse = ""))
-    elements$c1 <- unique_chars
-    elements <- paste(elements$c1, elements$c23)
-    elements
-  }
-}
-
-#' @export
 colour_tri_path2 <- function(graph_tri, el, mtx, dup){
   mtx <- graph_tri$mtx
   dup <- graph_tri$dup
   el <- graph_tri$el
-   colours <- vector(length = ecount(graph_tri))
+  colours <- vector(length = ecount(graph_tri))
   for(i in seq(nrow(mtx))){
      colours[igraph::E(graph_tri)[(.inc(mtx[i,1]) & .inc(mtx[i,2])) | (.inc(mtx[i,2]) & .inc(mtx[i,3]))]] <- mtx[i,1]
    }
