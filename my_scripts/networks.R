@@ -15,6 +15,11 @@ library(glue)
 #TODO: See how far you can get with tripartite graphs.
 #TODO: See if colouring based on outer edges is possible. Can you get an edge list from a tripartite graph?
 #TODO: Colour points by hidden variable: Organism--Enzyme coloured by plastic
+#TODO: add colour convergence heatmap type visualization
+#TODO: visualize multiple hypothesis testing / pairwise testing p-values
+#TODO: remove nodes?
+#TODO: colour nodes by layer
+#TODO colour using paste(get.edgelist()[,1], get.edgelist()[,2], sep = "-")
 
 rm_prefix_v <- function(graph_bi, prefix) {
   igraph::V(graph_bi)$name <- igraph::V(graph_bi)$name %>%
@@ -114,8 +119,8 @@ edge_weights_n <- function(graph_bi){
 split_node_label_newline <- function(graph_bi, n = 25){
   graph_bi_n <- igraph::V(graph_bi)$name
   dplyr::if_else(nchar(graph_bi_n) > n,
-    paste(substring(graph_bi_n, 0, n), 
-          substring(graph_bi_n, n + 1), 
+    paste(substring(graph_bi_n, 0, n),
+          substring(graph_bi_n, n + 1),
           sep = "\n"),
     graph_bi_n)
 }
@@ -129,7 +134,7 @@ offset_node_label <- function(graph_bi){
 }
 
 offset_node_label_newline <- function(graph_bi) {
-  strings <- igraph::V(graph_bi)$name 
+  strings <- igraph::V(graph_bi)$name
   formatted_strings <- tibble::tibble(strings) %>%
     dplyr::mutate(formatted = dplyr::case_when(
       stringr::str_detect(strings, "^1") ~ stringr::str_replace(strings, "(.*)$", "\\1  "),
@@ -175,7 +180,7 @@ graph_pe_s_c %>%
                    # show.legend = FALSE)+
     geom_node_text(aes(label = name),
                    hjust = "outward",
-                   size = 3) + 
+                   size = 3) +
     theme_graph(background = "white") +
     coord_flip() +
     # scale_y_reverse()
@@ -203,13 +208,13 @@ graph_plastic_2_coloured <- colour_edges_selection_bi_2(graph_plastic_2, selecti
 
 graph_plastic_2_coloured %>%
   ggraph(layout = "bipartite") +
-    geom_node_point(cex = 0.5, alpha = 0.7) + 
+    geom_node_point(cex = 0.5, alpha = 0.7) +
     geom_edge_link(aes(colour = E(graph_plastic_2_coloured)$colours),
                    show.legend = FALSE,
                    width = 2)+
     geom_node_text(aes(label = name),
                    hjust = "outward",
-                   size = 3) + 
+                   size = 3) +
     theme_graph(background = "white") +
     coord_flip() +
     scale_y_binned()
@@ -244,13 +249,13 @@ E(per_plastic_org_graph)$colours <- edge_colours_r
 per_plastic_org_graph %>%
   rm_prefix_v("^1_") %>%
   rm_prefix_v("^2_") %>%
-  ggraph(layout = "bipartite") + 
-    geom_node_point(cex = 0.5, alpha = 0.7) + 
+  ggraph(layout = "bipartite") +
+    geom_node_point(cex = 0.5, alpha = 0.7) +
     geom_edge_link(aes(colour = edge_colours_r))+
     geom_node_text(aes(label = name),
                    hjust = "outward",
-                   size = 3) + 
+                   size = 3) +
     theme_graph(background = "white") +
-    coord_flip() + 
-    scale_y_binned() + 
+    coord_flip() +
+    scale_y_binned() +
     theme(legend.position = "bottom")
