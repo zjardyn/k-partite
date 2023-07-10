@@ -10,7 +10,7 @@
 #' graph_bi <- my_bipartite_graph(el, c("c1", "c2"))
 #' E(graph_bi)$colour <- colour_edges_bi(graph_bi, 1)
 #' @export
-get_dup_edges <- function(graph_tri, direction = "lhs"){
+get_dup_edges <- function(graph_tri, direction = "lhs", sep = ""){
   el <- graph_tri$el
   mtx <- graph_tri$mtx
   dup <- graph_tri$dup
@@ -32,11 +32,10 @@ get_dup_edges <- function(graph_tri, direction = "lhs"){
         summarise(c1 = paste(c1, collapse = "|"))
       elements3 <- elements2 %>%
         filter(str_detect(c1, "\\|"))
-      unique_chars <- map_chr(elements3$c1, ~ strsplit(.x, "|") %>% unlist() %>% unique() %>% paste(collapse = ""))
+      unique_chars <- map_chr(elements3$c1, ~ strsplit(.x, "\\|") %>% unlist() %>% unique() %>% paste(collapse = sep))
       elements3$c1 <- unique_chars
       elements4 <- paste(elements3$c1, elements3$c23)
-      elements4 %>%
-        str_replace("\\|", "")
+      elements4
     } else if (direction == "rhs"){
       elements1 <- elements %>%
         unite(c12, c1, c2, sep = " ") %>%
@@ -46,11 +45,10 @@ get_dup_edges <- function(graph_tri, direction = "lhs"){
         summarise(c3 = paste(c3, collapse = "|"))
       elements3 <- elements2 %>%
         filter(str_detect(c1, "\\|"))
-      unique_chars <- map_chr(elements3$c3, ~ strsplit(.x, "|") %>% unlist() %>% unique() %>% paste(collapse = ""))
+      unique_chars <- map_chr(elements3$c3, ~ strsplit(.x, "\\|") %>% unlist() %>% unique() %>% paste(collapse = sep))
       elements3$c3 <- unique_chars
       elements4 <- paste(elements3$c12, elements3$c3)
-      elements4 %>%
-        str_replace("\\|", "")
+      elements4
     } else {
       stop('Direction is either "lhs" or "rhs".')
     }
