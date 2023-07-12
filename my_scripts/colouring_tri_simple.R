@@ -3,9 +3,9 @@ library(igraph)
 library(tidyverse)
 library(ggraph)
 
-df <- tibble(c1 = sample(LETTERS[1:3], 7, replace = TRUE),
-             c2 = sample(1:4, 7, replace = TRUE),
-             c3 = sample(letters[23:26], 7, replace = TRUE))
+df <- tibble(c1 = sample(LETTERS[1:3], 25, replace = TRUE),
+             c2 = sample(1:4, 25, replace = TRUE),
+             c3 = sample(letters[23:26], 25, replace = TRUE))
 graph_tri <- btvis::tripartite_graph(df, c("c1", "c2", "c3"))
 graph_tri_s <- igraph::simplify(graph_tri)
 if (sum(graph_tri$dup) != 0 && length(get_dup_edges(graph_tri)) != 0) {
@@ -26,25 +26,32 @@ if (sum(graph_tri$dup) != 0 && length(get_dup_edges(graph_tri)) != 0) {
   colour_s <- colour_tri_path3(graph_tri_s)
 }
 weights <- edge_weights_n(graph_tri)
-graph_tri_s %>%
+p <- graph_tri_s %>%
   ggraph(layout = graph_tri$l$layout[,2:1]) +
+  geom_edge_link(aes(colour = colour_s),
+                 edge_width = 2,
+                 show.legend = FALSE) +
   geom_node_point() +
-  geom_edge_link(aes(colour = colour_s, edge_width = weights)) +
-  geom_node_text(aes(label = name),
-                 hjust = "outward",
-                 vjust = "outward")+
-  theme_graph(background = "white") +
+  theme_void() +
   scale_x_reverse()
+
+# library(hexSticker)
+library(showtext)
+font_paths()
+font_add(family = "ComicCode", regular = "/usr/local/share/fonts/ComicCode-Regular.otf")
+showtext_auto()
+sticker(p, package = "btvis", filename = "~/btvis/hex.png",p_size=7, s_x=1, s_y=.8, s_width=0.9, s_height=0.9, )
+
 
 graph_tri$el
 graph_tri$mtx
 
 get_dup_edges(graph_tri)
 colours <- colour_tri_path3(graph_tri)
-graph_tri %>%
+graph_tri_s %>%
   ggraph(layout = graph_tri$l$layout[,2:1]) +
   geom_node_point() +
-  geom_edge_link(aes(colour = colours)) +
+  geom_edge_link(aes(colour = colour_s)) +
   geom_node_text(aes(label = name),
                  hjust = "outward",
                  vjust = "outward")+

@@ -20,7 +20,7 @@ library(glue)
 #TODO: remove nodes?
 #TODO: colour nodes by layer
 #TODO colour using paste(get.edgelist()[,1], get.edgelist()[,2], sep = "-")
-
+#TODO: **** modify get_dup_edges to work on big data, has to do with unique I think...
 rm_prefix_v <- function(graph_bi, prefix) {
   igraph::V(graph_bi)$name <- igraph::V(graph_bi)$name %>%
     stringr::str_replace(prefix, "")
