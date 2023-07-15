@@ -4,7 +4,7 @@
 \alias{get_dup_edges}
 \title{Get duplicated edges from either end of a tripartite graph, displaying the multiple edges.}
 \usage{
-get_dup_edges(graph_tri, direction = "lhs")
+get_dup_edges(graph_tri, direction = "lhs", sep = "")
 }
 \arguments{
 \item{graph_tri}{A tripartite graph object.}

@@ -44,7 +44,7 @@ get_dup_edges <- function(graph_tri, direction = "lhs", sep = ""){
         group_by(c12) %>%
         summarise(c3 = paste(c3, collapse = "|"))
       elements3 <- elements2 %>%
-        filter(str_detect(c1, "\\|"))
+        filter(str_detect(c3, "\\|"))
       unique_chars <- map_chr(elements3$c3, ~ strsplit(.x, "\\|") %>% unlist() %>% unique() %>% paste(collapse = sep))
       elements3$c3 <- unique_chars
       elements4 <- paste(elements3$c12, elements3$c3)
