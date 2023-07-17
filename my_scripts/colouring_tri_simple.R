@@ -3,18 +3,77 @@ library(igraph)
 library(tidyverse)
 library(ggraph)
 
+colour_tri_selection <- function(graph_tri, selection){
+  mtx <- graph_tri$mtx
+  mtx_p <- paste(mtx[,1], mtx[,2], mtx[,3] )
+  str_detect(mtx_p[1], selection)
+  ecount(graph_tri)
+  colours <- rep("Other", ecount(graph_tri))
+  for (i in seq(nrow(mtx))){
+    for (j in seq(length(selection))){
+      if (str_detect(mtx_p[i], selection[j])){
+        colours[igraph::E(graph_tri)[(.inc(mtx[i,1]) & .inc(mtx[i,2])) | (.inc(mtx[i,2]) & .inc(mtx[i,3]))]] <- selection[j]
+      }
+    }
+  }
+  colours
+}
+
 df <- tibble(c1 = sample(LETTERS[1:3], 7, replace = TRUE),
              c2 = sample(1:4, 7, replace = TRUE),
              c3 = sample(letters[23:26], 7, replace = TRUE))
 graph_tri <- btvis::tripartite_graph(df, c("c1", "c2", "c3"))
 graph_tri_s <- igraph::simplify(graph_tri)
-direction <- "rhs"
-colour_s <- colour_tri_path_dup(graph_tri, direction = direction)
-# colour_s <- colour_tri_path3(graph_tri_s, edge_selection = 2)
-weights <- edge_weights_n(graph_tri)
-graph_tri_s %>%
+
+colours <- colour_tri_selection(graph_tri_s, selection = c("A"))
+
+graph_tri %>%
   ggraph(layout = graph_tri$l$layout[,2:1]) +
-  geom_edge_link(aes(colour = colour_s, edge_width = weights),
+  geom_edge_link(aes(colour = colours),
+                 ) +
+  geom_node_label(aes(label = name),
+                 hjust = "outward",
+                 vjust = "inward",
+                 ) +
+  geom_node_point() +
+  # theme_void() +
+  scale_x_reverse() +
+# mtx <- graph_tri$mtx
+# mtx_p <- paste(mtx[,1], mtx[,2], mtx[,3] )
+# str_detect(mtx_p[1], selection)
+# ecount(graph_tri)
+# colours <- rep("Other", ecount(graph_tri))
+# for (i in seq(nrow(mtx))){
+#   for (j in seq(length(selection))){
+#     if (str_detect(mtx_p[i], selection[j])){
+#       colours[igraph::E(graph_tri)[(.inc(mtx[i,1]) & .inc(mtx[i,2])) | (.inc(mtx[i,2]) & .inc(mtx[i,3]))]] <- selection[j]
+#     }
+#   }
+# }
+# colours
+
+
+
+
+# colour_tri_path3 <- function(graph_tri, mtx, edge_selection = 1){
+#   mtx <- graph_tri$mtx
+#   colours <- vector(length = ecount(graph_tri))
+#   for(i in seq(nrow(mtx))){
+#     colours[igraph::E(graph_tri)[(.inc(mtx[i,1]) & .inc(mtx[i,2])) | (.inc(mtx[i,2]) & .inc(mtx[i,3]))]] <- mtx[i,edge_selection]
+#   }
+#   colours
+# }
+
+
+
+# graph_tri_s <- igraph::simplify(graph_tri)
+# direction <- "lhs"
+# colour_s <- colour_tri_path_dup(graph_tri, direction = direction)
+# colour_s <- colour_tri_path3(graph_tri_s, edge_selection = 2)
+# weights <- edge_weights_n(graph_tri)
+graph_tri %>%
+  ggraph(layout = graph_tri$l$layout[,2:1]) +
+  geom_edge_link(aes(colour = colours),
                  ) +
   geom_node_label(aes(label = name),
                  hjust = "outward",

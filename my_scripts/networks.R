@@ -12,8 +12,6 @@ library(glue)
 #TODO: Look at built-in datasets for plotting examples.(Airline destination/arrival)
 #TODO: Make a grouped agglomerated variable to use for weights.
 #TODO: Write parsing function for iprscan tsv files.
-#TODO: See how far you can get with tripartite graphs.
-#TODO: See if colouring based on outer edges is possible. Can you get an edge list from a tripartite graph?
 #TODO: Colour points by hidden variable: Organism--Enzyme coloured by plastic
 #TODO: add colour convergence heatmap type visualization
 #TODO: visualize multiple hypothesis testing / pairwise testing p-values
