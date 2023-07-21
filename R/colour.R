@@ -87,7 +87,8 @@ colour_tri_path3 <- function(graph_tri, mtx, edge_selection = 1){
 }
 
 #' @export
-colour_tri_path_dup <- function(graph_tri, direction = "lhs") {
+colour_tri_path_dup_s <- function(graph_tri, direction = "lhs") {
+  graph_tri_s <- igraph::simplify(graph_tri)
   if (direction == "rhs"){
     # rhs
     if (sum(graph_tri$dup) != 0 && length(get_dup_edges(graph_tri, direction = "rhs")) != 0) {
@@ -127,6 +128,54 @@ colour_tri_path_dup <- function(graph_tri, direction = "lhs") {
       }
     } else {
       colour_s <- colour_tri_path3(graph_tri_s, edge_selection = 1)
+    }
+  } else {
+    stop('edge_selection is either "rhs" or "lhs".')
+  }
+  colour_s
+}
+
+#' @export
+colour_tri_path_dup <- function(graph_tri, direction = "lhs") {
+  if (direction == "rhs"){
+    # rhs
+    if (sum(graph_tri$dup) != 0 && length(get_dup_edges(graph_tri, direction = "rhs")) != 0) {
+      dup <- get_dup_edges(graph_tri, direction = "rhs", sep = ';')
+      dup_split <- str_split(dup, " ")
+      colour_s <- btvis::colour_tri_path3(graph_tri, edge_selection = 3)
+      for (i in seq(ecount(graph_tri))){
+        for (j in seq(length(dup_split))){
+          edge <- paste(dup_split[[j]][1], dup_split[[j]][2])
+          edge_list_i <- get.edgelist(graph_tri)[i,]
+          edge_list_i_p <- paste(edge_list_i[1], edge_list_i[2])
+          edge_list_i_p_r <- paste(edge_list_i[2], edge_list_i[1])
+          if (edge_list_i_p == edge | edge_list_i_p_r == edge){
+            colour_s[i] <- dup[j]
+          }
+        }
+      }
+    } else {
+      colour_s <- colour_tri_path3(graph_tri, edge_selection = 3)
+    }
+  } else if (direction == "lhs"){
+    # lhs
+    if (sum(graph_tri$dup) != 0 && length(get_dup_edges(graph_tri, direction = "lhs")) != 0) {
+      dup <- get_dup_edges(graph_tri, direction = "lhs", sep = ';')
+      dup_split <- str_split(dup, " ")
+      colour_s <- btvis::colour_tri_path3(graph_tri, edge_selection = 1)
+      for (i in seq(ecount(graph_tri))){
+        for (j in seq(length(dup_split))){
+          edge <- paste(dup_split[[j]][2], dup_split[[j]][3])
+          edge_list_i <- get.edgelist(graph_tri)[i,]
+          edge_list_i_p <- paste(edge_list_i[1], edge_list_i[2])
+          edge_list_i_p_r <- paste(edge_list_i[2], edge_list_i[1])
+          if (edge_list_i_p == edge | edge_list_i_p_r == edge){
+            colour_s[i] <- dup[j]
+          }
+        }
+      }
+    } else {
+      colour_s <- colour_tri_path3(graph_tri, edge_selection = 1)
     }
   } else {
     stop('edge_selection is either "rhs" or "lhs".')
