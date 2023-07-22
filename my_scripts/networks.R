@@ -19,6 +19,8 @@ library(glue)
 #TODO: colour nodes by layer
 #TODO colour using paste(get.edgelist()[,1], get.edgelist()[,2], sep = "-")
 #TODO: **** modify get_dup_edges to work on big data, has to do with unique I think...
+#TODO: add simplify option to colouring functions to generate the simplified version
+#TODO: simplify all graphs by default as it is standardized
 rm_prefix_v <- function(graph_bi, prefix) {
   igraph::V(graph_bi)$name <- igraph::V(graph_bi)$name %>%
     stringr::str_replace(prefix, "")

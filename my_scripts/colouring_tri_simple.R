@@ -27,7 +27,7 @@ graph_tri_s <- igraph::simplify(graph_tri)
 
 colours <- colour_tri_selection(graph_tri_s, selection = c("A"))
 
-graph_tri %>%
+graph_tri_s %>%
   ggraph(layout = graph_tri$l$layout[,2:1]) +
   geom_edge_link(aes(colour = colours),
                  ) +
@@ -37,7 +37,7 @@ graph_tri %>%
                  ) +
   geom_node_point() +
   # theme_void() +
-  scale_x_reverse() +
+  scale_x_reverse()
 # mtx <- graph_tri$mtx
 # mtx_p <- paste(mtx[,1], mtx[,2], mtx[,3] )
 # str_detect(mtx_p[1], selection)

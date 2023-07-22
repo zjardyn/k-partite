@@ -47,3 +47,27 @@ colour_tri_path2 <- function(graph_tri, el, mtx, dup){
    }
   colours
 }
+
+
+# colours <- vector(length = ecount(graph_bi)) # FALSE element vector length of edges
+# ## Method 1.
+# # i iterates over the number of edges in graph_bi
+# for (i in seq(ecount(graph_bi))){
+#   # included edges with respect to their index in
+#   idx <- igraph::E(graph_bi)[.inc(el_bi[i,1]) & .inc(el_bi[i,2])]
+#   for (j in seq(colours[idx])){
+#     if (colours[idx][j] != FALSE){
+#       colours[idx][j] <- paste(colours[idx][j], column[i])
+#     } else {
+#       colours[idx][j] <- column[i]
+#     }
+#   }
+# }
+# colours_u <- sapply(strsplit(colours, " "), trimws) %>%
+#   sapply(unique) %>%
+#   sapply(paste, collapse = " ")
+# el_bi_p <- paste(el_bi[,1], el_bi[,2]) # edge
+# el_bi_s <- get.edgelist(igraph::simplify(graph_bi))
+# el_bi_s_p <- paste(el_bi_s[,1], el_bi_s[,2])
+# idx_s <- match(el_bi_s_p, el_bi_p)
+# colours <- colours_u[idx_s]

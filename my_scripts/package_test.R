@@ -6,25 +6,40 @@ library(ggraph)
 # small example
 df <- tibble(c1 = sample(LETTERS[1:4], 10, replace = TRUE),
              c2 = sample(LETTERS[23:26], 10, replace = TRUE),
-             c3 = sample(1:10, 10, replace = TRUE))
-
-
-
-
+             c3 = sample(1:10, 10, replace = TRUE),
+             c4 = c(rep("yes",5), rep("no", 5)))
 graph_bi <- btvis::bipartite_graph(df, c("c1", "c2"))
+### colour by external variable bipartite ###
+el_bi <- get.edgelist(graph_bi) # edgelist of graph_bi
+variable <- df$c4 # the variable we want to colour by
 
-igraph::as_adj(graph_bi)
-
-
-
-edge_colours <- colour_bi(graph_bi, 2)
-# edge_colours <- colour_edge_selection(graph_bi, c("A", "B", "1"))
-graph_bi %>%
+## Method 2.
+el_bi_p <- paste(el_bi[,1], el_bi[,2]) # edge
+el_v <- data.frame(el = el_bi_p, v = variable)
+el_v_a <- aggregate(el_v$v, list(el_v$el), FUN=paste, collapse= " " )
+v_a_u <- sapply(strsplit(el_v_a$x, " "), trimws) %>%
+  sapply(unique) %>%
+  sapply(paste, collapse = " ")
+el_v_a$x <- v_a_u
+el_bi_s <- get.edgelist(igraph::simplify(graph_bi))
+el_bi_s_p <- paste(el_bi_s[,1], el_bi_s[,2])
+idx <- match(el_bi_s_p, el_v_a$Group.1)
+colours <- el_v_a$x[idx]
+graph_bi_s <- igraph::simplify(graph_bi)
+weights <- edge_weights_n(graph_bi)
+graph_bi_s %>%
   ggraph::ggraph(layout = "bipartite") +
   ggraph::geom_node_point() +
-  ggraph::geom_edge_link(aes(colour = edge_colours)) +
+  ggraph::geom_edge_link(aes(colour = colours,
+                             edge_width = weights)) +
   ggraph::geom_node_text(ggplot2::aes(label = name), hjust = "outward", vjust = "outward") +  coord_flip() + scale_y_reverse() + scale_x_reverse()
+df
+E(graph_bi_s)
+as.data.frame(colours)
 
+el_bi
+el_bi_s
+graph_tri <- btvis::tripartite_graph(df, c("c1", "c2", "c3"))
 
 rm(list=ls())
 devtools::document()
