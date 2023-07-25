@@ -25,11 +25,42 @@ colour_bi_var_d <- function(graph_bi, df, var){
   colours
 }
 
+k_partite_graph <- function(df, edge_list){
+  mtx <- df %>%
+    dplyr::select(tidyselect::all_of(edge_list))%>%
+    as.matrix()
+  el <- matrix(nrow = 0, ncol = 2)
+  for (c in seq(ncol(mtx) - 1)){
+    el <- rbind(el, mtx[, c:(c + 1)])
+  }
+  graph_k <- igraph::graph_from_edgelist(el, directed = FALSE)
+  layers <- ceiling(match(V(graph_k)$name, mtx)/nrow(mtx))
+  l <- igraph::layout_with_sugiyama(graph_k, layers)
+  graph_k$mtx <- mtx
+  graph_k$el <- el
+  graph_k$l <- l
+  graph_k$dup <- duplicated(graph_k$el) | duplicated(graph_k$el,fromLast = TRUE )
+  graph_k
+}
+
 # small example
 df <- tibble(c1 = sample(LETTERS[1:4], 15, replace = TRUE),
              c2 = sample(LETTERS[23:26], 15, replace = TRUE),
              c3 = sample(1:10, 15, replace = TRUE),
-             c4 = c(rep("yes",5), rep("no", 5), rep("maybe", 5)))
+             c4 = c(rep("yes",5), rep("no", 5), rep("maybe", 5)),
+             c5 = rnorm(15))
+graph_k <- k_partite_graph(df, edge_list = c("c1", "c2", "c3", "c4", "c5"))
+graph_k %>%
+  ggraph::ggraph(layout = graph_k$l$layout) +
+  ggraph::geom_node_point(aes(colour = as.factor(graph_k$l$layout[,2]))) +
+  ggraph::geom_edge_link() +
+  ggraph::geom_node_text(ggplot2::aes(label = name), hjust = "outward", vjust = "outward") +  coord_flip() + scale_y_reverse() + scale_x_reverse()
+
+centralization.degree(graph_k)
+
+
+
+
 graph_bi <- btvis::bipartite_graph(df, c("c1", "c2"))
 colours <- colour_bi_var_d(graph_bi = graph_bi, df = df, var = c4)
 graph_bi_s <- igraph::simplify(graph_bi)
