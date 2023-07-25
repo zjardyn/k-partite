@@ -3,28 +3,35 @@ library(igraph)
 library(tidyverse)
 library(ggraph)
 
-# small example
-df <- tibble(c1 = sample(LETTERS[1:4], 10, replace = TRUE),
-             c2 = sample(LETTERS[23:26], 10, replace = TRUE),
-             c3 = sample(1:10, 10, replace = TRUE),
-             c4 = c(rep("yes",5), rep("no", 5)))
-graph_bi <- btvis::bipartite_graph(df, c("c1", "c2"))
-### colour by external variable bipartite ###
-el_bi <- get.edgelist(graph_bi) # edgelist of graph_bi
-variable <- df$c4 # the variable we want to colour by
+colour_bi_var_d <- function(graph_bi, df, var){
+  el_bi <- get.edgelist(graph_bi)
+  selection <- df %>%
+    pull({{ var }}) # variable to colour by
+  el_bi_p <- paste(el_bi[,1], el_bi[,2]) # edges pasted together
+  el_v <- data.frame(el = el_bi_p, v = selection)
+  # aggregate duplicate edges by pasting together the colouring variable
+  el_v_a <- aggregate(el_v$v, list(el_v$el), FUN=paste, collapse= " " )
+  # remove duplicate entries of pasted colouring variable
+  v_a_u <- sapply(strsplit(el_v_a$x, " "), trimws) %>%
+    sapply(unique) %>%
+    sapply(paste, collapse = " ")
+  el_v_a$x <- v_a_u
+  # remove duplicates from edgelist, paste together and match from aggregated edges
+  el_bi_s <- get.edgelist(igraph::simplify(graph_bi))
+  el_bi_s_p <- paste(el_bi_s[,1], el_bi_s[,2])
+  # get the indexes of matched edges
+  idx <- match(el_bi_s_p, el_v_a$Group.1)
+  colours <- el_v_a$x[idx]
+  colours
+}
 
-## Method 2.
-el_bi_p <- paste(el_bi[,1], el_bi[,2]) # edge
-el_v <- data.frame(el = el_bi_p, v = variable)
-el_v_a <- aggregate(el_v$v, list(el_v$el), FUN=paste, collapse= " " )
-v_a_u <- sapply(strsplit(el_v_a$x, " "), trimws) %>%
-  sapply(unique) %>%
-  sapply(paste, collapse = " ")
-el_v_a$x <- v_a_u
-el_bi_s <- get.edgelist(igraph::simplify(graph_bi))
-el_bi_s_p <- paste(el_bi_s[,1], el_bi_s[,2])
-idx <- match(el_bi_s_p, el_v_a$Group.1)
-colours <- el_v_a$x[idx]
+# small example
+df <- tibble(c1 = sample(LETTERS[1:4], 15, replace = TRUE),
+             c2 = sample(LETTERS[23:26], 15, replace = TRUE),
+             c3 = sample(1:10, 15, replace = TRUE),
+             c4 = c(rep("yes",5), rep("no", 5), rep("maybe", 5)))
+graph_bi <- btvis::bipartite_graph(df, c("c1", "c2"))
+colours <- colour_bi_var_d(graph_bi = graph_bi, df = df, var = c4)
 graph_bi_s <- igraph::simplify(graph_bi)
 weights <- edge_weights_n(graph_bi)
 graph_bi_s %>%
@@ -45,6 +52,10 @@ rm(list=ls())
 devtools::document()
 devtools::install()
 
+idx_d <- duplicated(el_bi_p) | duplicated(el_bi_p,fromLast = TRUE )
+library(emphatic)
+df %>%
+  hl('red', rows = idx_d)
 
 
 ## big example
@@ -60,6 +71,20 @@ df_s <- df %>%
   mutate(Enzyme = str_replace_all(Enzyme, " ", "_")) %>%
   mutate(Organism = str_replace_all(Organism, " ", "_")) %>%
   filter(Domain != "-")
+graph_bi_p <- btvis::bipartite_graph(df_s, c("Domain", "Enzyme"))
+colours <- colour_bi_var_d(graph_bi_p, df_s, Organism)
+graph_bi_ps <- igraph::simplify(graph_bi_p)
+weights <- edge_weights_n(graph_bi_p)
+graph_bi_ps %>%
+  ggraph::ggraph(layout = "bipartite") +
+  ggraph::geom_node_point() +
+  ggraph::geom_edge_link(aes(colour = colours,
+                             edge_width = weights)) +
+  ggraph::geom_node_text(ggplot2::aes(label = name), hjust = "outward", vjust = "outward") +  coord_flip() + scale_y_reverse() + scale_x_reverse()
+
+
+
+
 graph_tri <- tripartite_graph(df_s, c("Plastic","Organism", "Enzyme"))
 graph_tri_s <- igraph::simplify(graph_tri)
 direction <- "lhs"
