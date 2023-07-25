@@ -1,4 +1,4 @@
-Package: btvis
+Package: rpartite
 Title: Bipartite and Tripartite Graphs for Visualization of Relational Data
 Version: 0.0.0.9000
 Authors@R: 
