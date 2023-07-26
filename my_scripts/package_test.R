@@ -46,19 +46,19 @@ k_partite_graph <- function(df, edge_list){
 # small example
 df <- tibble(c1 = sample(LETTERS[1:4], 15, replace = TRUE),
              c2 = sample(LETTERS[23:26], 15, replace = TRUE),
-             c3 = sample(1:10, 15, replace = TRUE),
+             c3 = sample(1:5, 15, replace = TRUE),
              c4 = c(rep("yes",5), rep("no", 5), rep("maybe", 5)),
              c5 = rnorm(15))
-graph_k <- k_partite_graph(df, edge_list = c("c1", "c2", "c3", "c4"))
-graph_k$mtx
-graph_k$el
-colours <- rep(graph_k$el[1:(nrow(graph_k$el)/(ncol(graph_k)-1)),1],2)
+graph_k <- k_partite_graph(df, edge_list = c("c1", "c2", "c3", "c4", "c5"))
+mtx <- graph_k$mtx
+el <- graph_k$el
+colours <- rep(mtx[,3], ncol(mtx) - 1)
 lims <- graph_k$l$layout[,2]
-param <- 0.5
+param <- 0.3
 graph_k %>%
   ggraph::ggraph(layout = graph_k$l$layout) +
   ggraph::geom_node_point() +
-  ggraph::geom_edge_parallel(aes(colour = colours)) +
+  ggraph::geom_edge_fan(aes(colour = colours)) +
   ggraph::geom_node_text(ggplot2::aes(label = name), hjust = "outward", vjust = "outward") +
   coord_flip() + scale_y_reverse(limits = c(max(lims) + param, min(lims) - param)) + scale_x_reverse()
 
