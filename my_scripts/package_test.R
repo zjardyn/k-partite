@@ -1,4 +1,4 @@
-library(btvis)
+library(rpartite)
 library(igraph)
 library(tidyverse)
 library(ggraph)
@@ -43,6 +43,7 @@ k_partite_graph <- function(df, edge_list){
   graph_k
 }
 
+
 # small example
 df <- tibble(c1 = sample(LETTERS[1:4], 15, replace = TRUE),
              c2 = sample(LETTERS[23:26], 15, replace = TRUE),
@@ -50,11 +51,17 @@ df <- tibble(c1 = sample(LETTERS[1:4], 15, replace = TRUE),
              c4 = c(rep("yes",5), rep("no", 5), rep("maybe", 5)),
              c5 = rnorm(15))
 graph_k <- k_partite_graph(df, edge_list = c("c1", "c2", "c3", "c4", "c5"))
+lims <- graph_k$l$layout[,2]
+param <- 0.5
 graph_k %>%
   ggraph::ggraph(layout = graph_k$l$layout) +
-  ggraph::geom_node_point(aes(colour = as.factor(graph_k$l$layout[,2]))) +
-  ggraph::geom_edge_link() +
-  ggraph::geom_node_text(ggplot2::aes(label = name), hjust = "outward", vjust = "outward") +  coord_flip() + scale_y_reverse() + scale_x_reverse()
+  ggraph::geom_node_point(aes(colour = as.factor(graph_k$l$layout[,2])),
+                          size = 4,
+                          show.legend = FALSE) +
+  ggraph::geom_edge_fan(aes(colour = colour_tri(graph_k)),
+                        show.legend = FALSE) +
+  ggraph::geom_node_text(ggplot2::aes(label = name), hjust = "outward", vjust = "outward") +
+  coord_flip() + scale_y_reverse(limits = c(max(lims) + param, min(lims) - param)) + scale_x_reverse()
 
 centralization.degree(graph_k)
 
